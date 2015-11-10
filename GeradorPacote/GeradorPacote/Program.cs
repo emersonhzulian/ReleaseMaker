@@ -18,6 +18,10 @@ namespace GeradorPacote
             var opcaoDeploy = args[3];
             var arquivoConfiguracao = args[4];
 
+
+            caminhoDeltaArtefatos = @"D:\GeradorPacote\TesteMorpheus\delta\src\";
+            caminhoSolution = @"D:\Projetos\MetLife\Morpheus\35.0\src\src\Morpheus\Morpheus.sln";
+
             var servico = Servicos.ServicoGeradorPacote.RecuperaInstancia;
 
             var artefatos = Servicos.Servicos.Infra.BuscaArquivosDiretorio(caminhoDeltaArtefatos);

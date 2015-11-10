@@ -50,5 +50,33 @@ namespace GeradorPacote.Servicos.Servicos
             return xmlTexto.Remove(inicioTag, (fimTag - inicioTag) + 1);
         }
 
+        public static string EncontraCaminhoMutuo(string caminhoA, string caminhoB)
+        {
+            string retorno = string.Empty;
+
+            var diretorioA = caminhoA.Split(Path.DirectorySeparatorChar);
+            var diretorioB = caminhoB.Split(Path.DirectorySeparatorChar);
+
+            for(int i=0; i <= diretorioA.Length; i++)
+            {
+                if (i > diretorioA.Length -1 ||
+                     i > diretorioB.Length - 1)
+                {
+                    break;
+                }
+
+                if(diretorioA[i] == diretorioB[i])
+                {
+                    retorno += diretorioA[i] + Path.DirectorySeparatorChar;
+                }
+                else
+                {
+                    break;
+                }
+            }
+
+            return retorno;
+        }
+
     }
 }

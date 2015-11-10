@@ -1,0 +1,11 @@
+####Arquivo de deploy deverá seguir o padrão:
+#Linhas começadas com # serão ignoradas
+#
+#
+#
+#
+#
+
+servidor=SRVAPP03
+diretorio=\DeployParteBatch\
+diretorioBinario=\DeployParteBatch\
