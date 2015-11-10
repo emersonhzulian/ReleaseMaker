@@ -85,7 +85,7 @@ namespace GeradorPacote.Servicos
 
             XmlNodeList auxNodes;
             XmlNode auxNode;
-                
+
             auxNode = xmlCsproj.SelectSingleNode("/Project/PropertyGroup/AssemblyName");
 
             retorno.ArtefatoGerado = auxNode.InnerText;
@@ -180,7 +180,7 @@ namespace GeradorPacote.Servicos
             return retorno;
         }
 
-        public void GerarPacote(string solution, string diretorioDeltaArtefatos, List<string> artefatosDelta, string diretorioPacote, string opcaoDeploy)
+        public void GerarPacote(string solution, string diretorioDeltaArtefatos, List<string> artefatosDelta, string diretorioPacote, string opcaoDeploy, string arquivoConfiguracao)
         {
             List<string> projetosSolution = this.RecuperaProjetosSolution(solution);
 
@@ -199,8 +199,11 @@ namespace GeradorPacote.Servicos
 
                 caminhoRealProjeto += caminhoProjeto;
 
-                lstProjeto.Add(this.RecuperaProjeto(caminhoRealProjeto, opcaoDeploy, "deploy-metlife.txt"));
+                lstProjeto.Add(this.RecuperaProjeto(caminhoRealProjeto, opcaoDeploy, arquivoConfiguracao));
             }
+
+
+            var artefatosDeltaCaminhoCorrigido = artefatosDelta.Select(b => b.Replace(diretorioDeltaArtefatos, string.Empty));
 
             //identifica projetos que precisar ter suas DLLs enviadas novamente
             var projetosAfetados =
@@ -209,25 +212,19 @@ namespace GeradorPacote.Servicos
                         x.ArtefatosCompiladosProjeto
                         .Select(y => y.Replace(diretorioSolution, string.Empty))
                         .Where(a =>
-                            artefatosDelta
-                                .Select(b => b.Replace(diretorioDeltaArtefatos, string.Empty))
-                        .Contains(a))
+                            artefatosDeltaCaminhoCorrigido.Contains(a))
                         .Any()
                         ||
                         x.ArtefatosNaoCompiladosImportadosProjeto
                         .Select(y => y.Replace(diretorioSolution, string.Empty))
                         .Where(a =>
-                            artefatosDelta
-                                .Select(b => b.Replace(diretorioDeltaArtefatos, string.Empty))
-                        .Contains(a))
+                            artefatosDeltaCaminhoCorrigido.Contains(a))
                         .Any()
                         ||
                         x.ArtefatosNaoCompiladosProjeto
                         .Select(y => y.Replace(diretorioSolution, string.Empty))
                         .Where(a =>
-                            artefatosDelta
-                                .Select(b => b.Replace(diretorioDeltaArtefatos, string.Empty))
-                        .Contains(a))
+                            artefatosDeltaCaminhoCorrigido.Contains(a))
                         .Any()
                     ).ToList();
 
@@ -243,19 +240,19 @@ namespace GeradorPacote.Servicos
             foreach (var a in projetosAfetados)
             {
                 List<ObjetoDeploy> artefatosNecessarios = new List<ObjetoDeploy>();
-                RecuperaArtefatosRecursivo2(lstProjeto, a, artefatosDelta, diretorioSolution, diretorioDeltaArtefatos, ref dicArtefatosNecessarios, ref artefatosNecessarios);
+                RecuperaArtefatosRecursivo(lstProjeto, a, artefatosDelta, diretorioSolution, diretorioDeltaArtefatos, projetosAfetados, ref dicArtefatosNecessarios, ref artefatosNecessarios);
             }
 
-            dicArtefatosNecessarios = dicArtefatosNecessarios.Where(x => x.Key.ConfiguracaoDeploy.RealizaDeploy).ToDictionary(x=> x.Key, x=> x.Value);
+            dicArtefatosNecessarios = dicArtefatosNecessarios.Where(x => x.Key.ConfiguracaoDeploy.RealizaDeploy).ToDictionary(x => x.Key, x => x.Value);
 
-            foreach(var a in dicArtefatosNecessarios)
+            foreach (var a in dicArtefatosNecessarios)
             {
                 var diretorioPacoteProjeto = diretorioPacote + a.Key.ConfiguracaoDeploy.Servidor;
 
-                foreach(var b in a.Value)
+                foreach (var b in a.Value)
                 {
-                    if(b.Binario)
-                    { 
+                    if (b.Binario)
+                    {
                         var diretorioDestino = diretorioPacoteProjeto + a.Key.ConfiguracaoDeploy.DiretorioBinario + Path.GetFileName(b.Diretorio);
 
                         if (!Directory.Exists(Path.GetDirectoryName(diretorioDestino)))
@@ -272,7 +269,7 @@ namespace GeradorPacote.Servicos
 
                         teste = b.Diretorio.Remove(b.Diretorio.IndexOf(a.Key.DiretorioProjeto, 0), a.Key.DiretorioProjeto.Length);
 
-                        if(teste.StartsWith(@"\"))
+                        if (teste.StartsWith(@"\"))
                         {
                             teste = teste.Remove(0, 1);
                         }
@@ -290,9 +287,9 @@ namespace GeradorPacote.Servicos
             }
         }
 
-        private void RecuperaArtefatosRecursivo2(List<Projeto> projetosSolution, Projeto projetoAfetado, List<string> artefatosDelta, string diretorioSolution, string diretorioDeltaArtefatos, ref Dictionary<Projeto, List<ObjetoDeploy>> projetoArtefatos, ref List<ObjetoDeploy> artefatosNecessarios)
+        private void RecuperaArtefatosRecursivo(List<Projeto> projetosSolution, Projeto projetoAfetado, List<string> artefatosDelta, string diretorioSolution, string diretorioDeltaArtefatos, List<Projeto> projetosAfetados, ref Dictionary<Projeto, List<ObjetoDeploy>> projetoArtefatos, ref List<ObjetoDeploy> artefatosNecessarios)
         {
-            if (projetoAfetado.TipoProjeto == Constantes.TipoProjeto.DLL && projetosSolution.Where(x => x.ReferenciasProjeto.Contains(projetoAfetado.GUIDProjeto)).Any())
+            if (projetosAfetados.Contains(projetoAfetado))
             {
                 artefatosNecessarios.Add(new ObjetoDeploy() { Diretorio = projetoAfetado.ArtefatoGerado, Binario = true });
 
@@ -302,42 +299,16 @@ namespace GeradorPacote.Servicos
                                 .Select(b => b.Replace(diretorioDeltaArtefatos, string.Empty))
                         .Contains(a.Replace(diretorioSolution, string.Empty)))
                         .Select(x => new ObjetoDeploy() { Diretorio = x, Binario = true }));
-
-                foreach (var paiArtefato in projetosSolution.Where(x => 
-                        x.ReferenciasProjeto.Contains(projetoAfetado.GUIDProjeto)
-                        &&
-                        x.ConfiguracaoDeploy.RealizaDeploy))
-                {
-                    if (!projetoArtefatos.Keys.Contains(paiArtefato))
-                    {
-                        projetoArtefatos.Add(paiArtefato, new List<ObjetoDeploy>());
-                    }
-
-                    var artefatosNaoCompiladosAlterados = paiArtefato.ArtefatosNaoCompiladosProjeto
-                       .Where(a =>
-                           artefatosDelta
-                               .Select(b => b.Replace(diretorioDeltaArtefatos, string.Empty))
-                       .Contains(a.Replace(diretorioSolution, string.Empty)))
-                       .Select(x => new ObjetoDeploy() { Diretorio = x, Binario = false });
-
-                    foreach (var item in artefatosNaoCompiladosAlterados)
-                    {
-                        if (!projetoArtefatos[paiArtefato].Where(x => x.Diretorio == item.Diretorio).Any())
-                        {
-                            projetoArtefatos[paiArtefato].Add(item);
-                        }
-                    }
-
-                    foreach (var item in artefatosNecessarios)
-                    {
-                        if (!projetoArtefatos[paiArtefato].Where(x => x.Diretorio == item.Diretorio).Any())
-                        {
-                            projetoArtefatos[paiArtefato].Add(item);
-                        }
-                    }
-                }
             }
-            if (projetoAfetado.ConfiguracaoDeploy.RealizaDeploy || !projetosSolution.Where(x => x.ReferenciasProjeto.Contains(projetoAfetado.GUIDProjeto)).Any())
+
+            var projetosPai = projetosSolution.Where(x => x.ReferenciasProjeto.Contains(projetoAfetado.GUIDProjeto));
+
+            foreach (var projetoPai in projetosPai)
+            {
+                RecuperaArtefatosRecursivo(projetosSolution, projetoPai, artefatosDelta, diretorioSolution, diretorioDeltaArtefatos, projetosAfetados, ref projetoArtefatos, ref artefatosNecessarios);
+            }
+
+            if (projetoAfetado.ConfiguracaoDeploy.RealizaDeploy)
             {
                 if (!projetoArtefatos.Keys.Contains(projetoAfetado))
                 {
@@ -345,14 +316,14 @@ namespace GeradorPacote.Servicos
                     projetoArtefatos[projetoAfetado].Add(new ObjetoDeploy() { Diretorio = projetoAfetado.ArtefatoGerado, Binario = true });
                 }
 
-                var teste = projetoAfetado.ArtefatosNaoCompiladosProjeto
-                       .Where(a =>
-                           artefatosDelta
-                               .Select(b => b.Replace(diretorioDeltaArtefatos, string.Empty))
-                       .Contains(a.Replace(diretorioSolution, string.Empty)))
-                       .Select(x => new ObjetoDeploy() { Diretorio = x, Binario = false });
+                var artefatosNaoCompiladosAlterados = projetoAfetado.ArtefatosNaoCompiladosProjeto
+                   .Where(a =>
+                       artefatosDelta
+                           .Select(b => b.Replace(diretorioDeltaArtefatos, string.Empty))
+                   .Contains(a.Replace(diretorioSolution, string.Empty)))
+                   .Select(x => new ObjetoDeploy() { Diretorio = x, Binario = false });
 
-                foreach (var item in teste)
+                foreach (var item in artefatosNaoCompiladosAlterados)
                 {
                     if (!projetoArtefatos[projetoAfetado].Where(x => x.Diretorio == item.Diretorio).Any())
                     {
@@ -370,61 +341,10 @@ namespace GeradorPacote.Servicos
             }
         }
 
-        private void RecuperaArtefatosRecursivo(List<Projeto> projetosSolution, Projeto projetoAfetado, List<string> artefatosDelta, string diretorioSolution, string diretorioDeltaArtefatos, ref Dictionary<Projeto, List<ObjetoDeploy>> projetoArtefatos, ref List<ObjetoDeploy> artefatosNecessarios)
-        {
-            if (projetoAfetado.TipoProjeto == Constantes.TipoProjeto.DLL && projetosSolution.Where(x => x.ReferenciasProjeto.Contains(projetoAfetado.GUIDProjeto)).Any())
-            {
-                artefatosNecessarios.Add(new ObjetoDeploy() { Diretorio = projetoAfetado.ArtefatoGerado, Binario = true } );
-                
-                artefatosNecessarios.AddRange(projetoAfetado.ArtefatosNaoCompiladosImportadosProjeto
-                        .Where(a =>
-                            artefatosDelta
-                                .Select(b => b.Replace(diretorioDeltaArtefatos, string.Empty))
-                        .Contains(a.Replace(diretorioSolution, string.Empty)))
-                        .Select(x=> new ObjetoDeploy() { Diretorio = x, Binario = true }));
-
-                foreach (var a in projetosSolution.Where(x => x.ReferenciasProjeto.Contains(projetoAfetado.GUIDProjeto)))
-                {
-                    RecuperaArtefatosRecursivo(projetosSolution, a, artefatosDelta, diretorioSolution, diretorioDeltaArtefatos, ref projetoArtefatos, ref artefatosNecessarios);
-                }
-            }
-            if (projetoAfetado.ConfiguracaoDeploy.RealizaDeploy || !projetosSolution.Where(x => x.ReferenciasProjeto.Contains(projetoAfetado.GUIDProjeto)).Any())
-            {
-                if (!projetoArtefatos.Keys.Contains(projetoAfetado))
-                {
-                    projetoArtefatos.Add(projetoAfetado, new List<ObjetoDeploy>());
-                    projetoArtefatos[projetoAfetado].Add(new ObjetoDeploy() { Diretorio = projetoAfetado.ArtefatoGerado, Binario = true } );
-                }
-
-                var teste = projetoAfetado.ArtefatosNaoCompiladosProjeto
-                       .Where(a =>
-                           artefatosDelta
-                               .Select(b => b.Replace(diretorioDeltaArtefatos, string.Empty))
-                       .Contains(a.Replace(diretorioSolution, string.Empty)))
-                       .Select(x => new ObjetoDeploy() { Diretorio = x, Binario = false });
-
-                foreach (var item in teste)
-                {
-                    if (!projetoArtefatos[projetoAfetado].Where(x => x.Diretorio == item.Diretorio).Any())
-                    {
-                        projetoArtefatos[projetoAfetado].Add(item);
-                    }
-                }
-                
-                foreach(var item in artefatosNecessarios)
-                {
-                    if(!projetoArtefatos[projetoAfetado].Where(x=> x.Diretorio == item.Diretorio).Any())
-                    {
-                        projetoArtefatos[projetoAfetado].Add(item);
-                    }
-                }
-            }
-        }
-
         private ConfiguracoesDeploy RecuperaConfiguracoesDeploy(string diretorioProjeto, string diretorioConfiguracao)
         {
             var retorno = new ConfiguracoesDeploy();
-            
+
             if (File.Exists(diretorioConfiguracao))
             {
                 var arquivo = File.ReadAllLines(diretorioConfiguracao).ToList();
@@ -437,14 +357,14 @@ namespace GeradorPacote.Servicos
 
                 var a = RecuperaConfiguracaoDeLinhas(arquivo, "diretoriosIgnorar");
 
-                foreach(var b in a)
+                foreach (var b in a)
                 {
                     retorno.DiretoriosIgnorar.Add(Infra.EncontraDiretorio(diretorioProjeto + Path.DirectorySeparatorChar, b));
                 }
 
                 retorno.RealizaDeploy = true;
             }
-            
+
             return retorno;
         }
 
@@ -454,7 +374,7 @@ namespace GeradorPacote.Servicos
 
             var aux = linhas.FirstOrDefault(x => x.StartsWith(configuracao + "="));
 
-            if(aux != null)
+            if (aux != null)
             {
                 var auxb = aux.Split('=').ToList().Last();
 

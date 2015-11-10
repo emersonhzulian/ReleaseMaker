@@ -11,7 +11,7 @@ namespace WebApplication1
     {
         protected void Page_Load(object sender, EventArgs e)
         {
-
+            var x = new ConsoleApplication1.teste123();
         }
     }
 }

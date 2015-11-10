@@ -7,5 +7,5 @@
 #
 
 servidor=SRVAPP04
-diretorio=\PastaMetlife\DeployParteBatch\
-diretorioBinario=\PastaMetlife\DeployParteBatch\
+diretorio=\DeployParteBatch\
+diretorioBinario=\DeployParteBatch\

@@ -12,20 +12,17 @@ namespace GeradorPacote
     {
         static void Main(string[] args)
         {
-
-
             var caminhoSolution = args[0];
             var caminhoDeltaArtefatos = args[1];
             var caminhoPacote = args[2];
             var opcaoDeploy = args[3];
-
-
+            var arquivoConfiguracao = args[4];
 
             var servico = Servicos.ServicoGeradorPacote.RecuperaInstancia;
 
-            List<string> artefatos = Servicos.Servicos.Infra.BuscaArquivosDiretorio(caminhoDeltaArtefatos);
-            
-            servico.GerarPacote(caminhoSolution, caminhoDeltaArtefatos, artefatos, caminhoPacote, opcaoDeploy);
+            var artefatos = Servicos.Servicos.Infra.BuscaArquivosDiretorio(caminhoDeltaArtefatos);
+
+            servico.GerarPacote(caminhoSolution, caminhoDeltaArtefatos, artefatos, caminhoPacote, opcaoDeploy, arquivoConfiguracao);
         }
     }
 }

@@ -342,14 +342,6 @@
     <Content Include="Site.Master" />
   </ItemGroup>
   <ItemGroup>
-    <ProjectReference Include="..\ClassLibrary1\ClassLibrary1aa.csproj">
-      <Project>{b6a58530-ea10-4659-8ade-c9faa3b91628}</Project>
-      <Name>ClassLibrary1aa</Name>
-    </ProjectReference>
-    <ProjectReference Include="..\ClassLibrary2\ClassLibrary2.csproj">
-      <Project>{9538954a-e22e-4cf4-a452-0420020196fc}</Project>
-      <Name>ClassLibrary2</Name>
-    </ProjectReference>
     <ProjectReference Include="..\ConsoleApplication1\ConsoleApplication1.csproj">
       <Project>{626a3652-eeac-4754-9dee-cd47d4582e5a}</Project>
       <Name>ConsoleApplication1</Name>

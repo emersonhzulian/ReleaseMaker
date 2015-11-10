@@ -7,5 +7,5 @@
 #
 
 servidor=SRVWEB12
-diretorio=\PastaMetlife\DeployParteWeb\
-diretorioBinario=\PastaMetlife\DeployParteWeb\bin\
+diretorio=\DeployParteWeb\
+diretorioBinario=\DeployParteWeb\bin\
