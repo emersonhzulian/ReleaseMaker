@@ -17,6 +17,7 @@ namespace GeradorPacote
             var caminhoPacote = args[2];
             var opcaoDeploy = args[3];
             var arquivoConfiguracao = args[4];
+            var caminhoInicioDeltaSolution = args[5];
 
 
             caminhoDeltaArtefatos = @"D:\GeradorPacote\TesteMorpheus\delta\src\";
@@ -26,7 +27,7 @@ namespace GeradorPacote
 
             var artefatos = Servicos.Servicos.Infra.BuscaArquivosDiretorio(caminhoDeltaArtefatos);
 
-            servico.GerarPacote(caminhoSolution, caminhoDeltaArtefatos, artefatos, caminhoPacote, opcaoDeploy, arquivoConfiguracao);
+            servico.GerarPacote(caminhoSolution, caminhoDeltaArtefatos, artefatos, caminhoPacote, opcaoDeploy, arquivoConfiguracao, caminhoInicioDeltaSolution);
         }
     }
 }
