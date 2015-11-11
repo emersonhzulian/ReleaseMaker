@@ -1,6 +1,16 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
 <Project ToolsVersion="12.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
   <PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'Debug|AnyCPU'">
-    <StartArguments>D:\Projetos\MetLife\Morpheus\35.0\src\src\Morpheus\Morpheus.sln D:\GeradorPacote\TesteMorpheus\delta\ D:\GeradorPacote\Pacote\Pacote\ Debug deploy-metlife.txt D:\Projetos\MetLife\Morpheus\35.0\src\</StartArguments>
+    <StartArguments>D:\Projetos\MetLife\Morpheus\trunk\src\src\Morpheus\Morpheus.sln D:\GeradorPacote\TesteMorpheus\delta\ D:\GeradorPacote\Pacote\Pacote\ Debug deploy-metlife.txt D:\Projetos\MetLife\Morpheus\trunk\src\</StartArguments>
+  </PropertyGroup>
+  <PropertyGroup>
+    <PublishUrlHistory>publish\</PublishUrlHistory>
+    <InstallUrlHistory />
+    <SupportUrlHistory />
+    <UpdateUrlHistory />
+    <BootstrapperUrlHistory />
+    <ErrorReportUrlHistory />
+    <FallbackCulture>en-US</FallbackCulture>
+    <VerifyUploadedFiles>false</VerifyUploadedFiles>
   </PropertyGroup>
 </Project>

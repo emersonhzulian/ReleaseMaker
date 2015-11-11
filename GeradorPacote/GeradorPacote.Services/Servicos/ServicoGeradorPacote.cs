@@ -138,6 +138,20 @@ namespace GeradorPacote.Servicos
                 }
             }
 
+            auxNodes = xmlCsproj.SelectNodes("/Project/ItemGroup/None");
+
+            if (auxNodes.Count > 0)
+            {
+                foreach (XmlNode node in auxNodes)
+                {
+                    if (node.HasChildNodes
+                        && node.ChildNodes.Cast<XmlNode>().Where(x => x.Name == "SubType" && x.InnerText == "Designer").Any())
+                    {
+                        retorno.ArtefatosNaoCompiladosProjeto.Add(Infra.EncontraDiretorio(diretorioProjeto, node.Attributes["Include"].Value));
+                    }
+                }
+            }
+
             auxNodes = xmlCsproj.SelectNodes("/Project/ItemGroup/ProjectReference/Project");
 
             if (auxNodes.Count > 0)
@@ -221,7 +235,7 @@ namespace GeradorPacote.Servicos
 
             Dictionary<Projeto, List<ObjetoDeploy>> dicArtefatosNecessarios = new Dictionary<Projeto, List<ObjetoDeploy>>();
 
-            RecuperaArtefatos(projetosAfetados, lstProjeto, artefatosDeltaCaminhoCorrigido, diretorioSolution, ref dicArtefatosNecessarios);
+            RecuperaArtefatos(projetosAfetados, lstProjeto, artefatosDeltaCaminhoCorrigido, caminhoInicioDeltaSolution, ref dicArtefatosNecessarios);
 
             if (Directory.Exists(diretorioPacote))
             {
@@ -278,9 +292,9 @@ namespace GeradorPacote.Servicos
         /// <param name="projetosDeploy">Lista com os projetos da solution que precisam de deploy</param>
         /// <param name="projetosSolution">Lista com todos os projetos da solution</param>
         /// <param name="artefatosDelta">Lista com os artefato delta com seus caminhos iniciando em apartir da primeira pasta dentro delta</param>
-        /// <param name="diretorioSolution">Diretorio da Solution</param>
+        /// <param name="caminhoInicioDeltaSolution">Diretorio da Solution em que o delta se encontra</param>
         /// <param name="projetoArtefatos">Dicionario contendo como chave o projeto e como valor os objetos de deploy desse projeto</param>
-        private void RecuperaArtefatos(List<Projeto> projetosDeploy, List<Projeto> projetosSolution, List<string> artefatosDelta, string diretorioSolution, ref Dictionary<Projeto, List<ObjetoDeploy>> projetoArtefatos)
+        private void RecuperaArtefatos(List<Projeto> projetosDeploy, List<Projeto> projetosSolution, List<string> artefatosDelta, string caminhoInicioDeltaSolution, ref Dictionary<Projeto, List<ObjetoDeploy>> projetoArtefatos)
         {
             foreach (var projeto in projetosSolution.Where(x => x.ConfiguracaoDeploy.RealizaDeploy))
             {
@@ -288,11 +302,11 @@ namespace GeradorPacote.Servicos
 
                 projetoArtefatos.Add(projeto, new List<ObjetoDeploy>());
 
-                RecuperaArtefatosRecursivo(projetosSolution, projeto, artefatosDelta, diretorioSolution, projetosDeploy, ref artefatosNecessarios);
+                RecuperaArtefatosRecursivo(projetosSolution, projeto, artefatosDelta, caminhoInicioDeltaSolution, projetosDeploy, ref artefatosNecessarios);
 
                 var artefatosNaoCompiladosAlterados = projeto.ArtefatosNaoCompiladosProjeto
                    .Where(a =>
-                       artefatosDelta.Contains(a.Replace(diretorioSolution, string.Empty)))
+                       artefatosDelta.Contains(a.Replace(caminhoInicioDeltaSolution, string.Empty)))
                    .Select(x => new ObjetoDeploy() { Arquivo = x, Binario = false });
 
                 foreach (var item in artefatosNaoCompiladosAlterados.ToList())
@@ -319,10 +333,10 @@ namespace GeradorPacote.Servicos
         /// <param name="projetosSolution">Lista com todos os projetos da solution</param>
         /// <param name="projetoAfetado">Projeto sendo analisado</param>
         /// <param name="artefatosDelta">Lista com os artefato delta com seus caminhos iniciando em apartir da primeira pasta dentro delta</param>
-        /// <param name="diretorioSolution">Diretorio da solution</param>
+        /// <param name="caminhoInicioDeltaSolution">Diretorio da Solution em que o delta se encontra</param>
         /// <param name="projetosAfetados">Lista com os projetos afetados pelo delta</param>
         /// <param name="artefatosNecessarios">Lista de artefatos que precisam constar no deploy</param>
-        private void RecuperaArtefatosRecursivo(List<Projeto> projetosSolution, Projeto projetoAfetado, List<string> artefatosDelta, string diretorioSolution, List<Projeto> projetosAfetados, ref List<ObjetoDeploy> artefatosNecessarios)
+        private void RecuperaArtefatosRecursivo(List<Projeto> projetosSolution, Projeto projetoAfetado, List<string> artefatosDelta, string caminhoInicioDeltaSolution, List<Projeto> projetosAfetados, ref List<ObjetoDeploy> artefatosNecessarios)
         {
             if (projetosAfetados.Contains(projetoAfetado))
             {
@@ -331,7 +345,7 @@ namespace GeradorPacote.Servicos
                 artefatosNecessarios.AddRange(projetoAfetado.ArtefatosNaoCompiladosImportadosProjeto
                         .Where(a =>
                             artefatosDelta
-                        .Contains(a.Replace(diretorioSolution, string.Empty)))
+                        .Contains(a.Replace(caminhoInicioDeltaSolution, string.Empty)))
                         .Select(x => new ObjetoDeploy() { Arquivo = x, Binario = true }));
             }
 
@@ -339,7 +353,7 @@ namespace GeradorPacote.Servicos
 
             foreach (var projetoFilho in projetosFilhos)
             {
-                RecuperaArtefatosRecursivo(projetosSolution, projetoFilho, artefatosDelta, diretorioSolution, projetosAfetados, ref artefatosNecessarios);
+                RecuperaArtefatosRecursivo(projetosSolution, projetoFilho, artefatosDelta, caminhoInicioDeltaSolution, projetosAfetados, ref artefatosNecessarios);
             }
         }
 
@@ -373,12 +387,9 @@ namespace GeradorPacote.Servicos
 
             foreach (var a in aux)
             {
-                var auxb = a.Split('=').ToList().Last();
+                var valor = a.Split('=').ToList().Last().Trim();
 
-                foreach (var valor in auxb.Split(' '))
-                {
-                    retorno.Add(valor);
-                }
+                retorno.Add(valor);
             }
 
             return retorno;
