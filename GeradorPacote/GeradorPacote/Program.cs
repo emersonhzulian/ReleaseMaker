@@ -12,22 +12,25 @@ namespace GeradorPacote
     {
         static void Main(string[] args)
         {
-            var caminhoSolution = args[0];
-            var caminhoDeltaArtefatos = args[1];
-            var caminhoPacote = args[2];
-            var opcaoDeploy = args[3];
-            var arquivoConfiguracao = args[4];
-            var caminhoInicioDeltaSolution = args[5];
+            try
+            {
+                var caminhoSolution = args[0];
+                var caminhoDeltaArtefatos = args[1];
+                var caminhoPacote = args[2];
+                var opcaoDeploy = args[3];
+                var arquivoConfiguracao = args[4];
+                var caminhoInicioDeltaSolution = args[5];
 
+                var servico = Servicos.ServicoGeradorPacote.RecuperaInstancia;
 
-            caminhoDeltaArtefatos = @"D:\GeradorPacote\TesteMorpheus\delta\src\";
-            caminhoSolution = @"D:\Projetos\MetLife\Morpheus\35.0\src\src\Morpheus\Morpheus.sln";
+                var artefatos = Servicos.Servicos.Infra.BuscaArquivosDiretorio(caminhoDeltaArtefatos);
 
-            var servico = Servicos.ServicoGeradorPacote.RecuperaInstancia;
-
-            var artefatos = Servicos.Servicos.Infra.BuscaArquivosDiretorio(caminhoDeltaArtefatos);
-
-            servico.GerarPacote(caminhoSolution, caminhoDeltaArtefatos, artefatos, caminhoPacote, opcaoDeploy, arquivoConfiguracao, caminhoInicioDeltaSolution);
+                servico.GerarPacote(caminhoSolution, caminhoDeltaArtefatos, artefatos, caminhoPacote, opcaoDeploy, arquivoConfiguracao, caminhoInicioDeltaSolution);
+            }
+            catch (Exception ex)
+            {
+                throw ex;
+            }
         }
     }
 }

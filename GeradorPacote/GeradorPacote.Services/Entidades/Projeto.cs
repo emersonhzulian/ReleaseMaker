@@ -36,7 +36,7 @@ namespace GeradorPacote.Entidades
         public List<string> ArtefatosCompiladosProjeto { get; set; }
 
         /// <summary>
-        /// Arquivos como bibliotecas de terceiros importadas
+        /// Arquivos como bibliotecas (dll) de terceiros importadas
         /// </summary>
         public List<string> ArtefatosNaoCompiladosImportadosProjeto { get; set; }
 
@@ -45,8 +45,14 @@ namespace GeradorPacote.Entidades
         /// </summary>
         public List<string> ArtefatosNaoCompiladosProjeto { get; set; }
 
+        /// <summary>
+        /// Diretorio do projeto
+        /// </summary>
         public string DiretorioProjeto { get; set; }
 
+        /// <summary>
+        /// Armazena as configurações para o deploy
+        /// </summary>
         public ConfiguracoesDeploy ConfiguracaoDeploy { get; set; }
 
         public Projeto()

@@ -8,12 +8,10 @@ namespace GeradorPacote.Servicos
 {
     public static class Constantes
     {
-
         public enum TipoProjeto
         {
-            EXE,
-            WEB,
-            DLL
+            exe,
+            dll
         }
     }
 }
